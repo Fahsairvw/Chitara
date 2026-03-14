@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Django
+*.log
+*.pot
+*.pyc
+db.sqlite3
+db.sqlite3-journal
+
+# Django migrations cache
+*/migrations/__pycache__/
+
+# Environment variables
+.env
+
+# Mac system files
+.DS_Store
+
+# VSCode
+.vscode/
+
+# PyCharm
+.idea/
+
+# Node (if you later add frontend tools)
+node_modules/
+
+# Static build files
+staticfiles/
+
+# Media uploads
+media/
