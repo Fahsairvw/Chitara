@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from .models import User, Library, Song
 from .serializers import UserSerializer, LibrarySerializer, SongSerializer
 
+
 # USER
 @api_view(["GET", "POST"])
 def users(request):
@@ -42,7 +43,7 @@ def libraries(request):
 
 
 # SONG
-@api_view(["GET", "POST"])
+@api_view(["GET", "POST", "PUT"])
 def songs(request):
 
     if request.method == "GET":
@@ -57,6 +58,23 @@ def songs(request):
             serializer.save()
             return Response(serializer.data)
 
+        return Response(serializer.errors)
+
+    if request.method == "PUT":
+        song_id = request.data.get("id")
+        if not song_id:
+            return Response({"error": "Song ID is required in request body"})
+        
+        try:
+            song = Song.objects.get(pk=song_id)
+        except Song.DoesNotExist:
+            return Response({"error": "Song not found"})
+        
+        serializer = SongSerializer(song, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        
         return Response(serializer.errors)
 
 
