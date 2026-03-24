@@ -10,17 +10,24 @@ git clone https://github.com/Fahsairvw/Chitara.git
 cd Chitara
 ```
 
-### 2. Apply database migrations
+### 2. Create virtual environment and install dependencies
+```bash
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### 3. Apply database migrations
 ```bash
 python manage.py migrate
 ```
 
-### 3. Create a superuser (admin)
+### 4. Create a superuser (admin)
 ```bash
 python manage.py createsuperuser
 ```
 
-### 4. Run the development server
+### 5. Run the development server
 ```bash
 python manage.py runserver
 ```
