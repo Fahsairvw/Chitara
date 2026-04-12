@@ -6,4 +6,6 @@ urlpatterns = [
     path("libraries/", views.libraries),
     path("songs/", views.songs),
     path("songs/<int:pk>/", views.song_detail),
+    path('songs/generate/', views.create_song),
+    path('songs/status/<str:task_id>/', views.check_song),
 ]

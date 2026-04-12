@@ -39,6 +39,7 @@ class Song(models.Model):
         on_delete=models.CASCADE,
         related_name="generated_songs"
     )
+    task_id = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return self.title
