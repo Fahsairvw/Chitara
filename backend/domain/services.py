@@ -15,13 +15,16 @@ class MusicService:
 
         result = strategy.generate(data)
 
+        # Ensure status is properly set
+        status = result.get("status", SongStatus.PENDING)
+        
         song = Song.objects.create(
             title=data["title"],
             genre=data["genre"],
             occasion=data["occasion"],
             user=user,
             library=library,
-            status=result.get("status"),
+            status=status,
             link=result.get("url"),   
             task_id=result.get("taskId")
         )
@@ -31,6 +34,10 @@ class MusicService:
 
 def update_pending_songs():
     """Background task to check and update pending song statuses from Suno API"""
+    if settings.GENERATOR_STRATEGY == "mock":
+        print("Mock mode detected - skipping background song updates")
+        return
+    
     while True:
         # Check both PENDING and GENERATING songs
         pending_songs = Song.objects.filter(status__in=[SongStatus.PENDING, SongStatus.GENERATING])

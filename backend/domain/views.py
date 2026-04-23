@@ -56,13 +56,22 @@ def songs(request):
         return Response(serializer.data)
 
     if request.method == "POST":
-        serializer = SongSerializer(data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
+        try:
+            user_id = request.data.get("user")
+            library_id = request.data.get("library")
+            
+            user = User.objects.get(pk=user_id)
+            library = Library.objects.get(pk=library_id)
+            
+            service = MusicService()
+            song, result = service.generate_song(user, library, request.data)
+            
+            serializer = SongSerializer(song)
             return Response(serializer.data)
-
-        return Response(serializer.errors)
+        except (User.DoesNotExist, Library.DoesNotExist) as e:
+            return Response({"error": str(e)}, status=400)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
 
     if request.method == "PUT":
         song_id = request.data.get("id")
@@ -202,10 +211,6 @@ def google_oauth_start(request):
         f"&scope=openid%20email%20profile"
     )
     
-    print(f"DEBUG: Generated OAuth URL: {auth_url}")
-    print(f"DEBUG: CLIENT_ID: {CLIENT_ID}")
-    print(f"DEBUG: REDIRECT_URI: {REDIRECT_URI}")
-    
     return Response({"auth_url": auth_url})
 
 
@@ -241,14 +246,12 @@ def google_oauth_callback(request):
             'grant_type': 'authorization_code'
         }
         
-        print(f"DEBUG: Exchanging code for token...")
         token_response = requests.post(token_url, data=token_data)
         token_response.raise_for_status()
         token_response_data = token_response.json()
         
         id_token = token_response_data.get('id_token')
-        print(f"DEBUG: Got ID token: {id_token[:50] if id_token else 'None'}...")
-        
+                
         # Get user info from Google
         userinfo_url = 'https://openidconnect.googleapis.com/v1/userinfo'
         headers = {'Authorization': f"Bearer {token_response_data.get('access_token')}"}
@@ -312,10 +315,7 @@ def google_auth(request):
     """
     Handle Google OAuth ID token verification (fallback for direct token)
     """
-    id_token_str = request.data.get('id_token')
-    
-    print(f"DEBUG: Received Google auth request with token: {id_token_str[:50] if id_token_str else 'None'}...")
-    
+    id_token_str = request.data.get('id_token')    
     if not id_token_str:
         return Response({"error": "No ID token provided"}, status=400)
     
