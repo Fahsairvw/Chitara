@@ -55,6 +55,27 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
+### 4. Setup Frontend
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+```
+
+## Running the Frontend
+
+To start the frontend development server:
+
+```bash
+cd frontend
+npm run dev
+```
+The application will be available at `http://localhost:5173`. Make sure the backend is also running so that API requests succeed.
+
+
 ## Running the Backend
 
 ### Mock Mode (Testing/Development)
