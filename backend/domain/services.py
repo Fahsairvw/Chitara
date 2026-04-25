@@ -1,10 +1,13 @@
 import time
+import logging
 import requests
 import os
 from .models import Song
 from .models.choices import SongStatus
 from .strategies.factory import get_generator_strategy
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 class MusicService:
@@ -35,7 +38,7 @@ class MusicService:
 def update_pending_songs():
     """Background task to check and update pending song statuses from Suno API"""
     if settings.GENERATOR_STRATEGY == "mock":
-        print("Mock mode detected - skipping background song updates")
+        logger.info("Mock mode detected - skipping background song updates")
         return
     
     while True:
@@ -68,9 +71,9 @@ def update_pending_songs():
                         song.status = SongStatus.SUCCEEDED
                         song.save()
 
-                        print(f"Updated song {song.id}")
+                        logger.info(f"Updated song {song.id}")
 
             except Exception as e:
-                print("Error:", e)
+                logger.error(f"Error updating song status: {e}", exc_info=True)
 
         time.sleep(30)

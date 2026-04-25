@@ -1,6 +1,9 @@
+import logging
 import requests
 import os
 from .base import SongGeneratorStrategy
+
+logger = logging.getLogger(__name__)
 
 
 class SunoSongGenerator(SongGeneratorStrategy):
@@ -41,8 +44,8 @@ class SunoSongGenerator(SongGeneratorStrategy):
         try:
             response = requests.post(url, json=payload, headers=headers)
 
-            print("SUNO STATUS:", response.status_code)
-            print("SUNO RESPONSE:", response.text)
+            logger.debug(f"Suno API status: {response.status_code}")
+            logger.debug(f"Suno API response: {response.text}")
 
             if response.status_code != 200:
                 return {
@@ -55,7 +58,7 @@ class SunoSongGenerator(SongGeneratorStrategy):
 
             task_id = response_data.get("data", {}).get("taskId")
 
-            print("EXTRACTED TASK ID:", task_id)
+            logger.debug(f"Extracted task ID: {task_id}")
 
             return {
                 "status": "PENDING" if task_id else "FAILED",

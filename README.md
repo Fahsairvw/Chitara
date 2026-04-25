@@ -94,6 +94,19 @@ python manage.py runserver
 - Returns actual audio URLs
 - Songs take time to generate
 
+## Google OAuth Setup Guide
+
+1. **Create Project & Consent Screen**: Go to [Google Cloud Console](https://console.cloud.google.com/), create a project, and set up the OAuth consent screen (External, add `openid`, `email`, `profile` scopes).
+2. **Create Credentials**: Go to **Credentials > Create Credentials > OAuth client ID** (Web application). Add `http://localhost:8000/api/auth/google/callback/` to **Authorized redirect URIs**.
+3. **Configure Environment**: Copy your Client ID and Client Secret, then update your `.env` file:
+
+```env
+CLIENT_ID=your_client_id_here
+CLIENT_SECRET=your_client_secret_here
+GOOGLE_REDIRECT_URI=http://localhost:8000/api/auth/google/callback/
+FRONTEND_URL=http://localhost:5173
+```
+
 ## How Song Generation Works
 
 ### Mock Mode
@@ -123,3 +136,33 @@ curl http://localhost:8000/api/songs/status/{task_id}/
 
 Here is a link of CRUD, suno api and mock evidence
 https://docs.google.com/document/d/1byFzzkw_89gAtEnHXGaNv5JHO6FOuWLFFedegcLajpE/edit?usp=sharing
+
+## Architecture Diagrams
+
+### Domain Model Diagram
+This diagram shows the core entities (Models) and their relationships within the database layer.
+
+![Class Diagram](diagram/domain_diagram.png)
+
+
+
+### MVT Architecture Class Diagram
+This diagram outlines how the system applies the Model-View-Template architecture, utilizing Vue.js for the Templates layer and Django REST Framework for Models and Views.
+
+![Class Diagram](diagram/class_diagram.png)
+
+### Song Generation Sequence Diagram
+This sequence diagram details the asynchronous song generation process, including the API integration strategy and the polling mechanisms.
+
+![Sequence Diagram](diagram/chitara_sequence.png)
+
+## Application Screenshots
+
+### Login Page
+![Login Page](diagram/login_page.png)
+
+### Library Page
+![Library Page](diagram/libraly_page.png)
+
+### Song Detail
+![Song Detail](diagram/song_detail.png)

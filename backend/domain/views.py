@@ -1,11 +1,24 @@
 import os
+import logging
 import requests
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import User, Library, Song
-from .models.choices import SongStatus
+from .models.choices import SongStatus, Genre, Occasion
 from .serializers import UserSerializer, LibrarySerializer, SongSerializer
 from .services import MusicService
+
+logger = logging.getLogger(__name__)
+
+
+# CHOICES
+@api_view(["GET"])
+def choices(request):
+    """Return Genre and Occasion choices defined in the model."""
+    return Response({
+        "genres": [{"value": v, "label": l} for v, l in Genre.choices],
+        "occasions": [{"value": v, "label": l} for v, l in Occasion.choices],
+    })
 
 
 # USER
@@ -260,7 +273,7 @@ def google_oauth_callback(request):
         userinfo_response.raise_for_status()
         userinfo = userinfo_response.json()
         
-        print(f"DEBUG: User info: {userinfo}")
+        logger.debug(f"User info: {userinfo}")
         
         email = userinfo.get('email')
         first_name = userinfo.get('given_name', '').strip() or 'User'
@@ -279,7 +292,7 @@ def google_oauth_callback(request):
             }
         )
         
-        print(f"DEBUG: User {'created' if created else 'found'}: {user.id}")
+        logger.info(f"User {'created' if created else 'found'}: {user.id}")
         
         # Create or get library
         library, _ = Library.objects.get_or_create(
@@ -295,15 +308,13 @@ def google_oauth_callback(request):
         FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
         frontend_redirect = f"{FRONTEND_URL}/?auth_token={auth_token}&user={user.id}"
         
-        print(f"DEBUG: User {user.id} authenticated, redirecting to frontend: {frontend_redirect}")
+        logger.info(f"User {user.id} authenticated, redirecting to frontend: {frontend_redirect}")
         
         from django.http import HttpResponseRedirect
         return HttpResponseRedirect(frontend_redirect)
         
     except Exception as e:
-        print(f"DEBUG: Error in google_oauth_callback: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Error in google_oauth_callback: {str(e)}", exc_info=True)
         return Response({
             "error": f"Google authentication failed: {str(e)}"
         }, status=500)
@@ -325,7 +336,7 @@ def google_auth(request):
         
         # Decode JWT payload (basic - not cryptographically verified)
         parts = id_token_str.split('.')
-        print(f"DEBUG: Token parts: {len(parts)}")
+        logger.debug(f"Token parts: {len(parts)}")
         
         if len(parts) < 2:
             raise ValueError(f"Invalid token format - expected 3 parts, got {len(parts)}")
@@ -337,9 +348,9 @@ def google_auth(request):
         
         try:
             idinfo = json.loads(base64.urlsafe_b64decode(payload))
-            print(f"DEBUG: Decoded token info: {idinfo}")
+            logger.debug(f"Decoded token info: {idinfo}")
         except Exception as e:
-            print(f"DEBUG: Failed to decode token: {str(e)}")
+            logger.debug(f"Failed to decode token: {str(e)}")
             raise ValueError(f"Invalid token payload: {str(e)}")
         
         # Extract user information
@@ -347,7 +358,7 @@ def google_auth(request):
         first_name = idinfo.get('given_name', '').strip() or 'User'
         last_name = idinfo.get('family_name', '').strip() or 'Account'
         
-        print(f"DEBUG: Extracted email={email}, first_name={first_name}, last_name={last_name}")
+        logger.debug(f"Extracted email={email}, first_name={first_name}, last_name={last_name}")
         
         if not email:
             return Response({"error": "Email not found in token"}, status=400)
@@ -362,7 +373,7 @@ def google_auth(request):
             }
         )
         
-        print(f"DEBUG: User {'created' if created else 'found'}: {user.id}")
+        logger.info(f"User {'created' if created else 'found'}: {user.id}")
         
         # Create or get user's library
         library, _ = Library.objects.get_or_create(
@@ -377,7 +388,7 @@ def google_auth(request):
         # Serialize user
         serializer = UserSerializer(user)
         
-        print(f"DEBUG: Login successful for user {user.id}")
+        logger.info(f"Login successful for user {user.id}")
         
         return Response({
             "token": auth_token,
@@ -386,9 +397,7 @@ def google_auth(request):
         }, status=200)
         
     except Exception as e:
-        print(f"DEBUG: Error in google_auth: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Error in google_auth: {str(e)}", exc_info=True)
         return Response({
             "error": f"Authentication failed: {str(e)}"
         }, status=500)
